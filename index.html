@@ -935,11 +935,12 @@
         }
 
         function showMonth(month, year) {
-            const firstDay = new Date(year, month, 1);
-            const dayOfWeek = firstDay.getDay();
+            // Always open the week that contains today's date (ongoing day)
+            const today = new Date();
+            const dayOfWeek = today.getDay();
             // Adjust to start week on Monday
-            const diff = firstDay.getDate() - dayOfWeek + (dayOfWeek === 0 ? -6 : 1);
-            currentWeekStart = new Date(firstDay.setDate(diff));
+            const diff = today.getDate() - dayOfWeek + (dayOfWeek === 0 ? -6 : 1);
+            currentWeekStart = new Date(today.setDate(diff));
             currentWeekStart.setHours(0, 0, 0, 0);
             
             showView('weeks');
