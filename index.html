@@ -1,0 +1,1439 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Weekly Planner & Productivity App</title>
+    <style>
+        * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+        }
+
+        body {
+            font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
+            background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+            min-height: 100vh;
+            padding: 20px;
+        }
+
+        .container {
+            max-width: 1400px;
+            margin: 0 auto;
+            background: rgba(255, 255, 255, 0.95);
+            border-radius: 20px;
+            padding: 30px;
+            box-shadow: 0 20px 60px rgba(0, 0, 0, 0.3);
+        }
+
+        .header {
+            text-align: center;
+            margin-bottom: 30px;
+        }
+
+        .header h1 {
+            color: #333;
+            font-size: 2.5em;
+            margin-bottom: 10px;
+        }
+
+        .today-date {
+            font-size: 1.2em;
+            color: #666;
+            margin-top: 5px;
+            font-weight: 500;
+        }
+
+        .stats-bar {
+            display: grid;
+            grid-template-columns: repeat(4, 1fr);
+            gap: 20px;
+            margin-bottom: 30px;
+            padding: 20px;
+            background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+            border-radius: 15px;
+            color: white;
+        }
+
+        .stat-item {
+            text-align: center;
+            padding: 15px;
+            background: rgba(255, 255, 255, 0.1);
+            border-radius: 10px;
+            backdrop-filter: blur(10px);
+        }
+
+        .stat-item h3 {
+            font-size: 2.5em;
+            margin-bottom: 5px;
+            font-weight: bold;
+        }
+
+        .stat-item p {
+            font-size: 1em;
+            opacity: 0.9;
+        }
+
+        .view-selector {
+            display: flex;
+            gap: 10px;
+            margin-bottom: 20px;
+            justify-content: center;
+            flex-wrap: wrap;
+        }
+
+        .view-btn {
+            padding: 12px 30px;
+            border: none;
+            background: #667eea;
+            color: white;
+            border-radius: 8px;
+            cursor: pointer;
+            transition: all 0.3s;
+            font-size: 1em;
+            font-weight: 500;
+        }
+
+        .view-btn:hover {
+            background: #764ba2;
+            transform: translateY(-2px);
+            box-shadow: 0 5px 15px rgba(0, 0, 0, 0.2);
+        }
+
+        .view-btn.active {
+            background: #764ba2;
+            box-shadow: 0 5px 15px rgba(0, 0, 0, 0.2);
+        }
+
+        .year-selector {
+            display: flex;
+            justify-content: center;
+            align-items: center;
+            gap: 15px;
+            margin-bottom: 20px;
+        }
+
+        .year-btn {
+            padding: 8px 16px;
+            border: none;
+            background: #667eea;
+            color: white;
+            border-radius: 6px;
+            cursor: pointer;
+            transition: all 0.3s;
+            font-size: 1em;
+        }
+
+        .year-btn:hover {
+            background: #764ba2;
+        }
+
+        .current-year {
+            font-size: 1.5em;
+            font-weight: bold;
+            color: #333;
+            min-width: 100px;
+            text-align: center;
+        }
+
+        .months-grid {
+            display: grid;
+            grid-template-columns: repeat(auto-fill, minmax(200px, 1fr));
+            gap: 15px;
+            margin-bottom: 30px;
+        }
+
+        .month-card {
+            background: white;
+            border-radius: 12px;
+            padding: 20px;
+            text-align: center;
+            cursor: pointer;
+            transition: all 0.3s;
+            box-shadow: 0 5px 15px rgba(0, 0, 0, 0.1);
+        }
+
+        .month-card:hover {
+            transform: translateY(-5px);
+            box-shadow: 0 10px 30px rgba(0, 0, 0, 0.2);
+        }
+
+        .month-card.today-month {
+            border: 3px solid #667eea;
+            background: linear-gradient(135deg, #f8f9ff 0%, #ffffff 100%);
+        }
+
+        .month-card h3 {
+            color: #333;
+            margin-bottom: 10px;
+        }
+
+        .month-card p {
+            color: #666;
+            font-size: 0.9em;
+        }
+
+        .week-view {
+            display: none;
+        }
+
+        .week-header {
+            text-align: center;
+            margin-bottom: 20px;
+        }
+
+        .week-header h2 {
+            color: #333;
+            margin-bottom: 5px;
+            font-size: 2em;
+        }
+
+        .week-header p {
+            color: #666;
+            font-size: 1.1em;
+        }
+
+        .week-navigation {
+            display: flex;
+            justify-content: center;
+            gap: 20px;
+            margin-bottom: 30px;
+            flex-wrap: wrap;
+        }
+
+        .nav-btn {
+            padding: 10px 20px;
+            border: none;
+            background: #667eea;
+            color: white;
+            border-radius: 6px;
+            cursor: pointer;
+            transition: all 0.3s;
+            font-size: 1em;
+        }
+
+        .nav-btn:hover {
+            background: #764ba2;
+            transform: translateY(-2px);
+        }
+
+        .nav-btn.today-btn {
+            background: #28a745;
+        }
+
+        .nav-btn.today-btn:hover {
+            background: #218838;
+        }
+
+        .days-grid {
+            display: grid;
+            grid-template-columns: repeat(3, 1fr);
+            gap: 20px;
+        }
+
+        .day-card {
+            background: white;
+            border-radius: 15px;
+            padding: 20px;
+            box-shadow: 0 5px 15px rgba(0, 0, 0, 0.1);
+            transition: all 0.3s;
+            display: flex;
+            flex-direction: column;
+            max-height: 600px;
+            overflow-y: auto;
+        }
+
+        .day-card:hover {
+            transform: translateY(-5px);
+            box-shadow: 0 10px 30px rgba(0, 0, 0, 0.2);
+        }
+
+        .day-card.today-card {
+            border: 3px solid #667eea;
+            background: linear-gradient(135deg, #f8f9ff 0%, #ffffff 100%);
+        }
+
+        .day-card h4 {
+            color: #333;
+            margin-bottom: 5px;
+            font-size: 1.3em;
+            font-weight: 600;
+        }
+
+        .day-card .date {
+            color: #666;
+            font-size: 1em;
+            margin-bottom: 10px;
+            padding-bottom: 10px;
+            border-bottom: 2px solid #f0f0f0;
+        }
+
+        .day-stats {
+            background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+            color: white;
+            padding: 12px;
+            border-radius: 10px;
+            margin-bottom: 15px;
+            text-align: center;
+            font-size: 1em;
+            font-weight: 500;
+        }
+
+        .task-list {
+            margin-top: 10px;
+            flex: 1;
+        }
+
+        .task-card {
+            background: #f8f9fa;
+            padding: 15px;
+            border-radius: 10px;
+            margin-bottom: 10px;
+            position: relative;
+            transition: all 0.3s;
+            border-left: 4px solid #667eea;
+        }
+
+        .task-card:hover {
+            background: #e9ecef;
+            transform: translateX(5px);
+        }
+
+        .task-card.completed {
+            border-left-color: #28a745;
+            opacity: 0.8;
+        }
+
+        .task-card h5 {
+            color: #333;
+            margin-bottom: 5px;
+            font-size: 1.1em;
+            font-weight: 600;
+            padding-right: 100px;
+        }
+
+        .task-card p {
+            font-size: 0.9em;
+            color: #666;
+            margin-bottom: 5px;
+        }
+
+        .task-actions {
+            display: flex;
+            gap: 5px;
+            margin-top: 10px;
+            justify-content: flex-end;
+            flex-wrap: wrap;
+        }
+
+        .task-btn {
+            padding: 5px 10px;
+            border: none;
+            border-radius: 5px;
+            cursor: pointer;
+            font-size: 0.8em;
+            transition: all 0.3s;
+        }
+
+        .task-btn.pomodoro {
+            background: #28a745;
+            color: white;
+        }
+
+        .task-btn.pomodoro:hover {
+            background: #218838;
+        }
+
+        .task-btn.edit {
+            background: #ffc107;
+            color: white;
+        }
+
+        .task-btn.edit:hover {
+            background: #e0a800;
+        }
+
+        .task-btn.delete {
+            background: #dc3545;
+            color: white;
+        }
+
+        .task-btn.delete:hover {
+            background: #c82333;
+        }
+
+        .task-btn.complete {
+            background: #17a2b8;
+            color: white;
+        }
+
+        .task-btn.complete:hover {
+            background: #138496;
+        }
+
+        .add-task-btn {
+            width: 100%;
+            padding: 12px;
+            border: 2px dashed #667eea;
+            background: transparent;
+            color: #667eea;
+            border-radius: 10px;
+            cursor: pointer;
+            transition: all 0.3s;
+            font-size: 1em;
+            font-weight: 500;
+            margin-top: 10px;
+        }
+
+        .add-task-btn:hover {
+            background: #667eea;
+            color: white;
+        }
+
+        .modal {
+            display: none;
+            position: fixed;
+            top: 0;
+            left: 0;
+            width: 100%;
+            height: 100%;
+            background: rgba(0, 0, 0, 0.5);
+            z-index: 1000;
+            justify-content: center;
+            align-items: center;
+        }
+
+        .modal-content {
+            background: white;
+            padding: 30px;
+            border-radius: 15px;
+            width: 90%;
+            max-width: 500px;
+            max-height: 90vh;
+            overflow-y: auto;
+        }
+
+        .modal-header {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            margin-bottom: 20px;
+        }
+
+        .modal-header h3 {
+            color: #333;
+            font-size: 1.5em;
+        }
+
+        .close-btn {
+            background: none;
+            border: none;
+            font-size: 1.8em;
+            cursor: pointer;
+            color: #666;
+            transition: all 0.3s;
+        }
+
+        .close-btn:hover {
+            color: #333;
+            transform: scale(1.1);
+        }
+
+        .form-group {
+            margin-bottom: 20px;
+        }
+
+        .form-group label {
+            display: block;
+            color: #333;
+            margin-bottom: 5px;
+            font-weight: 500;
+        }
+
+        .form-group input,
+        .form-group textarea,
+        .form-group select {
+            width: 100%;
+            padding: 12px;
+            border: 2px solid #e0e0e0;
+            border-radius: 8px;
+            font-size: 1em;
+            transition: all 0.3s;
+        }
+
+        .form-group input:focus,
+        .form-group textarea:focus,
+        .form-group select:focus {
+            border-color: #667eea;
+            outline: none;
+        }
+
+        .form-group textarea {
+            resize: vertical;
+            min-height: 100px;
+        }
+
+        .submit-btn {
+            width: 100%;
+            padding: 14px;
+            background: #667eea;
+            color: white;
+            border: none;
+            border-radius: 8px;
+            cursor: pointer;
+            font-size: 1.1em;
+            font-weight: 500;
+            transition: all 0.3s;
+        }
+
+        .submit-btn:hover {
+            background: #764ba2;
+            transform: translateY(-2px);
+            box-shadow: 0 5px 15px rgba(0, 0, 0, 0.2);
+        }
+
+        .stats-view {
+            display: none;
+            padding: 20px;
+        }
+
+        .stats-grid {
+            display: grid;
+            grid-template-columns: repeat(auto-fill, minmax(350px, 1fr));
+            gap: 25px;
+            margin-top: 20px;
+        }
+
+        .stats-card {
+            background: white;
+            padding: 25px;
+            border-radius: 15px;
+            box-shadow: 0 5px 15px rgba(0, 0, 0, 0.1);
+        }
+
+        .stats-card h3 {
+            color: #333;
+            margin-bottom: 20px;
+            border-bottom: 3px solid #667eea;
+            padding-bottom: 10px;
+            font-size: 1.3em;
+        }
+
+        .stat-row {
+            display: flex;
+            justify-content: space-between;
+            padding: 12px 0;
+            border-bottom: 1px solid #f0f0f0;
+            font-size: 1em;
+        }
+
+        .stat-row:last-child {
+            border-bottom: none;
+        }
+
+        .stat-row span:first-child {
+            color: #666;
+            font-weight: 500;
+        }
+
+        .stat-row span:last-child {
+            color: #333;
+            font-weight: 600;
+        }
+
+        .timer-window {
+            display: none;
+            position: fixed;
+            top: 0;
+            left: 0;
+            width: 100%;
+            height: 100%;
+            background-size: cover;
+            background-position: center;
+            z-index: 2000;
+            justify-content: center;
+            align-items: center;
+        }
+
+        .timer-container {
+            background: rgba(0, 0, 0, 0.85);
+            padding: 50px;
+            border-radius: 30px;
+            text-align: center;
+            backdrop-filter: blur(10px);
+            box-shadow: 0 20px 60px rgba(0, 0, 0, 0.5);
+        }
+
+        .timer-display {
+            font-size: 6em;
+            color: white;
+            font-weight: bold;
+            margin-bottom: 20px;
+            text-shadow: 2px 2px 4px rgba(0, 0, 0, 0.5);
+            font-family: monospace;
+        }
+
+        .timer-controls {
+            display: flex;
+            gap: 15px;
+            justify-content: center;
+            flex-wrap: wrap;
+        }
+
+        .timer-btn {
+            padding: 15px 30px;
+            border: none;
+            border-radius: 10px;
+            cursor: pointer;
+            font-size: 1.1em;
+            font-weight: 500;
+            transition: all 0.3s;
+        }
+
+        .timer-btn.start {
+            background: #28a745;
+            color: white;
+        }
+
+        .timer-btn.pause {
+            background: #ffc107;
+            color: white;
+        }
+
+        .timer-btn.stop {
+            background: #dc3545;
+            color: white;
+        }
+
+        .timer-btn:hover {
+            transform: scale(1.1);
+            box-shadow: 0 5px 15px rgba(0, 0, 0, 0.3);
+        }
+
+        .task-name-display {
+            color: white;
+            font-size: 2em;
+            margin-bottom: 20px;
+            font-weight: 500;
+        }
+
+        .hide {
+            display: none !important;
+        }
+
+        .show {
+            display: flex !important;
+        }
+
+        .empty-state {
+            text-align: center;
+            color: #999;
+            padding: 20px;
+            font-style: italic;
+        }
+
+        .task-status {
+            display: inline-block;
+            padding: 3px 8px;
+            border-radius: 4px;
+            font-size: 0.8em;
+            font-weight: 500;
+            margin-left: 10px;
+        }
+
+        .status-completed {
+            background: #28a745;
+            color: white;
+        }
+
+        .status-pending {
+            background: #ffc107;
+            color: white;
+        }
+
+        .warning-message {
+            background: #fff3cd;
+            color: #856404;
+            padding: 10px;
+            border-radius: 5px;
+            margin-bottom: 15px;
+            border: 1px solid #ffeeba;
+        }
+
+        @media (max-width: 1200px) {
+            .days-grid {
+                grid-template-columns: repeat(2, 1fr);
+            }
+        }
+
+        @media (max-width: 768px) {
+            .days-grid {
+                grid-template-columns: 1fr;
+            }
+            
+            .stats-bar {
+                grid-template-columns: repeat(2, 1fr);
+            }
+            
+            .timer-display {
+                font-size: 4em;
+            }
+            
+            .stats-grid {
+                grid-template-columns: 1fr;
+            }
+        }
+    </style>
+</head>
+<body>
+    <div class="container">
+        <div class="header">
+            <h1>📅 Weekly Planner & Productivity Hub</h1>
+            <div class="today-date" id="todayDateDisplay"></div>
+        </div>
+
+        <div class="stats-bar">
+            <div class="stat-item">
+                <h3 id="todayStats">0.0h / 0</h3>
+                <p>Today</p>
+            </div>
+            <div class="stat-item">
+                <h3 id="weekStats">0.0h / 0</h3>
+                <p>This Week</p>
+            </div>
+            <div class="stat-item">
+                <h3 id="monthStats">0.0h / 0</h3>
+                <p>This Month</p>
+            </div>
+            <div class="stat-item">
+                <h3 id="yearStats">0.0h / 0</h3>
+                <p>This Year</p>
+            </div>
+        </div>
+
+        <div class="view-selector">
+            <button class="view-btn active" onclick="showView('months')">📅 Months View</button>
+            <button class="view-btn" onclick="showView('weeks')">📆 Week View</button>
+            <button class="view-btn" onclick="showView('stats')">📊 Statistics</button>
+        </div>
+
+        <div id="monthsView" class="months-view">
+            <div class="year-selector">
+                <button class="year-btn" onclick="changeYear(-1)">← Previous Year</button>
+                <span class="current-year" id="currentYearDisplay"></span>
+                <button class="year-btn" onclick="changeYear(1)">Next Year →</button>
+                <button class="year-btn today-btn" onclick="goToCurrentYear()">📅 Current Year</button>
+            </div>
+            <div class="months-grid" id="monthsGrid"></div>
+        </div>
+
+        <div id="weekView" class="week-view">
+            <div class="week-header">
+                <h2 id="currentMonth"></h2>
+                <p id="weekSubtitle"></p>
+            </div>
+            <div class="week-navigation">
+                <button class="nav-btn" onclick="navigateWeek(-1)">← Previous Week</button>
+                <button class="nav-btn today-btn" onclick="goToCurrentWeek()">📅 Current Week</button>
+                <button class="nav-btn" onclick="navigateWeek(1)">Next Week →</button>
+            </div>
+            <div class="days-grid" id="daysGrid"></div>
+        </div>
+
+        <div id="statsView" class="stats-view">
+            <h2>📊 Productivity Statistics</h2>
+            <div class="stats-grid">
+                <div class="stats-card">
+                    <h3>Last 7 Days</h3>
+                    <div id="dailyStats"></div>
+                </div>
+                <div class="stats-card">
+                    <h3>Last 6 Months</h3>
+                    <div id="monthlyStats"></div>
+                </div>
+                <div class="stats-card">
+                    <h3>Yearly Overview</h3>
+                    <div id="yearlyStats"></div>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <div id="taskModal" class="modal">
+        <div class="modal-content">
+            <div class="modal-header">
+                <h3 id="modalTitle">Add Task</h3>
+                <button class="close-btn" onclick="closeTaskModal()">&times;</button>
+            </div>
+            <div class="form-group">
+                <label>Task Name</label>
+                <input type="text" id="taskName" placeholder="Enter task name">
+            </div>
+            <div class="form-group">
+                <label>Description</label>
+                <textarea id="taskDesc" placeholder="Enter task description"></textarea>
+            </div>
+            <div class="form-group">
+                <label>Pomodoro Duration (minutes)</label>
+                <input type="number" id="pomodoroDuration" value="25" min="1" max="60">
+            </div>
+            <div class="form-group">
+                <label>Status</label>
+                <select id="taskStatus">
+                    <option value="pending">Pending</option>
+                    <option value="completed">Completed</option>
+                </select>
+            </div>
+            <button class="submit-btn" onclick="saveTask()">Save Task</button>
+        </div>
+    </div>
+
+    <div id="pomodoroModal" class="modal">
+        <div class="modal-content">
+            <div class="modal-header">
+                <h3>Pomodoro Settings</h3>
+                <button class="close-btn" onclick="closePomodoroModal()">&times;</button>
+            </div>
+            <div class="form-group">
+                <label>Session Duration (minutes)</label>
+                <input type="number" id="sessionDuration" value="25" min="1" max="60">
+            </div>
+            <div class="form-group">
+                <label>Background Image URL (optional)</label>
+                <input type="text" id="bgUrl" placeholder="https://example.com/image.jpg">
+            </div>
+            <button class="submit-btn" onclick="startPomodoro()">Start Focus Session</button>
+        </div>
+    </div>
+
+    <div id="timerWindow" class="timer-window">
+        <div class="timer-container">
+            <h2 class="task-name-display" id="taskNameDisplay"></h2>
+            <div class="timer-display" id="timerDisplay">25:00</div>
+            <div class="timer-controls">
+                <button class="timer-btn start" onclick="resumeTimer()">▶ Resume</button>
+                <button class="timer-btn pause" onclick="pauseTimer()">⏸ Pause</button>
+                <button class="timer-btn stop" onclick="stopTimer()">⏹ Stop</button>
+            </div>
+        </div>
+    </div>
+
+    <script>
+        // Check if this is the first time loading the app
+        const hasVisitedBefore = localStorage.getItem('hasVisitedBefore');
+        
+        // Data storage - initialize with empty data if first visit
+        let tasks = {};
+        let sessions = [];
+        
+        if (hasVisitedBefore) {
+            // Load existing data for returning users
+            tasks = JSON.parse(localStorage.getItem('tasks')) || {};
+            sessions = JSON.parse(localStorage.getItem('sessions')) || [];
+        } else {
+            // First time visitor - set empty data and mark as visited
+            localStorage.setItem('tasks', JSON.stringify(tasks));
+            localStorage.setItem('sessions', JSON.stringify(sessions));
+            localStorage.setItem('hasVisitedBefore', 'true');
+        }
+        
+        let currentWeekStart = new Date();
+        let currentYear = new Date().getFullYear();
+        let currentTask = null;
+        let currentDay = null;
+        let editingTaskIndex = null;
+        let timerInterval = null;
+        let timeRemaining = 0;
+        let isPaused = false;
+
+        // Make sure the year display starts with the detected current year
+        // (the span in HTML is initially empty)
+        function updateYearDisplay() {
+            document.getElementById('currentYearDisplay').textContent = currentYear;
+        }
+
+        // Initialize
+        function init() {
+            updateTodayDate();
+            setCurrentWeek();
+            updateYearDisplay();
+            generateMonths();
+            loadStats();
+            showView('months');
+            
+            // Log for debugging
+            console.log('App initialized with', sessions.length, 'sessions and', Object.keys(tasks).length, 'task days');
+        }
+
+        function updateTodayDate() {
+            const today = new Date();
+            const options = { weekday: 'long', year: 'numeric', month: 'long', day: 'numeric' };
+            document.getElementById('todayDateDisplay').textContent = today.toLocaleDateString('en-US', options);
+        }
+
+        function setCurrentWeek() {
+            const today = new Date();
+            const dayOfWeek = today.getDay();
+            // Adjust to start week on Monday
+            const diff = today.getDate() - dayOfWeek + (dayOfWeek === 0 ? -6 : 1);
+            currentWeekStart = new Date(today.setDate(diff));
+            currentWeekStart.setHours(0, 0, 0, 0);
+        }
+
+        function goToCurrentWeek() {
+            setCurrentWeek();
+            updateWeekView();
+        }
+
+        function goToCurrentYear() {
+            currentYear = new Date().getFullYear();
+            updateYearDisplay();
+            generateMonths();
+        }
+
+        function changeYear(direction) {
+            currentYear += direction;
+            updateYearDisplay();
+            generateMonths();
+        }
+
+        function generateMonths() {
+            const monthsGrid = document.getElementById('monthsGrid');
+            monthsGrid.innerHTML = '';
+            
+            const months = [
+                'January', 'February', 'March', 'April', 'May', 'June',
+                'July', 'August', 'September', 'October', 'November', 'December'
+            ];
+            
+            const today = new Date();
+            const currentMonth = today.getMonth();
+            const currentYearToday = today.getFullYear();
+            
+            months.forEach((month, index) => {
+                const card = document.createElement('div');
+                card.className = 'month-card';
+                if (index === currentMonth && currentYear === currentYearToday) {
+                    card.classList.add('today-month');
+                }
+                card.onclick = () => showMonth(index, currentYear);
+                
+                const sessionsInMonth = sessions.filter(s => {
+                    const d = new Date(s.date);
+                    return d.getMonth() === index && d.getFullYear() === currentYear;
+                });
+                
+                const totalHours = sessionsInMonth.reduce((total, s) => total + (s.duration / 60), 0);
+                
+                card.innerHTML = `
+                    <h3>${month} ${currentYear}</h3>
+                    <p>${totalHours.toFixed(1)}h / ${sessionsInMonth.length} sessions</p>
+                `;
+                monthsGrid.appendChild(card);
+            });
+        }
+
+        function showMonth(month, year) {
+            const firstDay = new Date(year, month, 1);
+            const dayOfWeek = firstDay.getDay();
+            // Adjust to start week on Monday
+            const diff = firstDay.getDate() - dayOfWeek + (dayOfWeek === 0 ? -6 : 1);
+            currentWeekStart = new Date(firstDay.setDate(diff));
+            currentWeekStart.setHours(0, 0, 0, 0);
+            
+            showView('weeks');
+            updateWeekView();
+        }
+
+        function showView(view) {
+            document.querySelectorAll('.view-btn').forEach(btn => btn.classList.remove('active'));
+            const buttons = document.querySelectorAll('.view-btn');
+            if (view === 'months') buttons[0].classList.add('active');
+            else if (view === 'weeks') buttons[1].classList.add('active');
+            else if (view === 'stats') buttons[2].classList.add('active');
+            
+            document.getElementById('monthsView').style.display = view === 'months' ? 'block' : 'none';
+            document.getElementById('weekView').style.display = view === 'weeks' ? 'block' : 'none';
+            document.getElementById('statsView').style.display = view === 'stats' ? 'block' : 'none';
+            
+            if (view === 'weeks') {
+                updateWeekView();
+            } else if (view === 'stats') {
+                loadDetailedStats();
+            }
+        }
+
+        function navigateWeek(direction) {
+            currentWeekStart.setDate(currentWeekStart.getDate() + (direction * 7));
+            updateWeekView();
+        }
+
+        function updateWeekView() {
+            const daysGrid = document.getElementById('daysGrid');
+            daysGrid.innerHTML = '';
+            
+            const monthNames = ['January', 'February', 'March', 'April', 'May', 'June',
+                              'July', 'August', 'September', 'October', 'November', 'December'];
+            const dayNames = ['Monday', 'Tuesday', 'Wednesday', 'Thursday', 'Friday', 'Saturday', 'Sunday'];
+            
+            const weekEnd = new Date(currentWeekStart);
+            weekEnd.setDate(weekEnd.getDate() + 6);
+            
+            const weekNumber = getWeekNumber(currentWeekStart);
+            document.getElementById('currentMonth').textContent = monthNames[currentWeekStart.getMonth()] + ' ' + currentWeekStart.getFullYear();
+            document.getElementById('weekSubtitle').textContent = `Week ${weekNumber} • ${monthNames[currentWeekStart.getMonth()]} ${currentWeekStart.getDate()} - ${monthNames[weekEnd.getMonth()]} ${weekEnd.getDate()}, ${weekEnd.getFullYear()}`;
+            
+            const today = new Date();
+            const todayKey = formatDateKey(today);
+            
+            for (let i = 0; i < 7; i++) {
+                const day = new Date(currentWeekStart);
+                day.setDate(currentWeekStart.getDate() + i);
+                
+                const dayKey = formatDateKey(day);
+                const dayTasks = tasks[dayKey] || [];
+                
+                const dayHours = getDayHours(day);
+                const daySessions = sessions.filter(s => s.date === dayKey).length;
+                
+                const dayCard = document.createElement('div');
+                dayCard.className = 'day-card';
+                if (dayKey === todayKey) {
+                    dayCard.classList.add('today-card');
+                }
+                
+                let tasksHtml = '';
+                if (dayTasks.length === 0) {
+                    tasksHtml = '<div class="empty-state">✨ No tasks for this day</div>';
+                } else {
+                    dayTasks.forEach((task, index) => {
+                        const statusClass = task.completed ? 'status-completed' : 'status-pending';
+                        const statusText = task.completed ? 'Completed' : 'Pending';
+                        const taskClass = task.completed ? 'completed' : '';
+                        
+                        // Count sessions for this specific task
+                        const taskSessions = sessions.filter(s => 
+                            s.date === dayKey && s.task === task.name
+                        );
+                        const taskHours = taskSessions.reduce((total, s) => total + (s.duration / 60), 0);
+                        
+                        tasksHtml += `
+                            <div class="task-card ${taskClass}">
+                                <h5>${task.name} <span class="task-status ${statusClass}">${statusText}</span></h5>
+                                <p>${task.description || 'No description'}</p>
+                                <p><small>⏱️ Duration: ${task.duration} min</small></p>
+                                <p><small>📊 Tracked: ${taskHours.toFixed(1)}h (${taskSessions.length} sessions)</small></p>
+                                <div class="task-actions">
+                                    <button class="task-btn pomodoro" onclick="openPomodoroForTask('${dayKey}', ${index})">🍅 Focus</button>
+                                    <button class="task-btn complete" onclick="toggleTaskComplete('${dayKey}', ${index})">✓ Toggle</button>
+                                    <button class="task-btn edit" onclick="editTask('${dayKey}', ${index})">✏️ Edit</button>
+                                    <button class="task-btn delete" onclick="deleteTask('${dayKey}', ${index})">🗑️ Delete</button>
+                                </div>
+                            </div>
+                        `;
+                    });
+                }
+                
+                dayCard.innerHTML = `
+                    <h4>${dayNames[i]}</h4>
+                    <div class="date">${monthNames[day.getMonth()]} ${day.getDate()}, ${day.getFullYear()}</div>
+                    <div class="day-stats">📚 ${dayHours.toFixed(1)} hours (${daySessions} sessions)</div>
+                    <div class="task-list">
+                        ${tasksHtml}
+                    </div>
+                    <button class="add-task-btn" onclick="openTaskModal('${dayKey}')">+ Add New Task</button>
+                `;
+                
+                daysGrid.appendChild(dayCard);
+            }
+            
+            loadStats();
+        }
+
+        function getWeekNumber(date) {
+            const firstDay = new Date(date.getFullYear(), 0, 1);
+            const pastDays = (date - firstDay) / 86400000;
+            return Math.ceil((pastDays + firstDay.getDay() + 1) / 7);
+        }
+
+        function formatDateKey(date) {
+            return `${date.getFullYear()}-${(date.getMonth() + 1).toString().padStart(2, '0')}-${date.getDate().toString().padStart(2, '0')}`;
+        }
+
+        function openTaskModal(day) {
+            currentDay = day;
+            editingTaskIndex = null;
+            document.getElementById('modalTitle').textContent = 'Add New Task';
+            document.getElementById('taskName').value = '';
+            document.getElementById('taskDesc').value = '';
+            document.getElementById('pomodoroDuration').value = '25';
+            document.getElementById('taskStatus').value = 'pending';
+            document.getElementById('taskModal').style.display = 'flex';
+        }
+
+        function editTask(day, taskIndex) {
+            currentDay = day;
+            editingTaskIndex = taskIndex;
+            const task = tasks[day][taskIndex];
+            
+            document.getElementById('modalTitle').textContent = 'Edit Task';
+            document.getElementById('taskName').value = task.name;
+            document.getElementById('taskDesc').value = task.description || '';
+            document.getElementById('pomodoroDuration').value = task.duration;
+            document.getElementById('taskStatus').value = task.completed ? 'completed' : 'pending';
+            document.getElementById('taskModal').style.display = 'flex';
+        }
+
+        function deleteTask(day, taskIndex) {
+            const taskName = tasks[day][taskIndex].name;
+            
+            // Count sessions for this task
+            const taskSessions = sessions.filter(s => s.date === day && s.task === taskName);
+            const sessionCount = taskSessions.length;
+            const totalHours = taskSessions.reduce((total, s) => total + (s.duration / 60), 0);
+            
+            let warningMessage = `Are you sure you want to delete "${taskName}"?`;
+            if (sessionCount > 0) {
+                warningMessage += `\n\n⚠️ This task has ${sessionCount} tracked session(s) (${totalHours.toFixed(1)} hours).\nThese will also be deleted and your statistics will be updated.`;
+            }
+            
+            if (confirm(warningMessage)) {
+                // Remove all sessions associated with this task
+                sessions = sessions.filter(s => !(s.date === day && s.task === taskName));
+                localStorage.setItem('sessions', JSON.stringify(sessions));
+                
+                // Remove the task
+                tasks[day].splice(taskIndex, 1);
+                if (tasks[day].length === 0) {
+                    delete tasks[day];
+                }
+                localStorage.setItem('tasks', JSON.stringify(tasks));
+                
+                // Update all views
+                loadStats();
+                generateMonths();
+                if (document.getElementById('weekView').style.display === 'block') {
+                    updateWeekView();
+                }
+                if (document.getElementById('statsView').style.display === 'block') {
+                    loadDetailedStats();
+                }
+                
+                alert('✅ Task and associated sessions deleted successfully!');
+            }
+        }
+
+        function toggleTaskComplete(day, taskIndex) {
+            tasks[day][taskIndex].completed = !tasks[day][taskIndex].completed;
+            localStorage.setItem('tasks', JSON.stringify(tasks));
+            updateWeekView();
+        }
+
+        function closeTaskModal() {
+            document.getElementById('taskModal').style.display = 'none';
+        }
+
+        function saveTask() {
+            const name = document.getElementById('taskName').value.trim();
+            const description = document.getElementById('taskDesc').value.trim();
+            const duration = parseInt(document.getElementById('pomodoroDuration').value);
+            const status = document.getElementById('taskStatus').value === 'completed';
+            
+            if (!name) {
+                alert('Please enter a task name');
+                return;
+            }
+            
+            if (!tasks[currentDay]) {
+                tasks[currentDay] = [];
+            }
+            
+            const task = {
+                name,
+                description,
+                duration,
+                completed: status,
+                createdAt: new Date().toISOString()
+            };
+            
+            if (editingTaskIndex !== null) {
+                // When editing, we need to handle sessions if task name changed
+                const oldTask = tasks[currentDay][editingTaskIndex];
+                if (oldTask.name !== name) {
+                    // Update session task names to match new task name
+                    sessions = sessions.map(s => {
+                        if (s.date === currentDay && s.task === oldTask.name) {
+                            s.task = name;
+                        }
+                        return s;
+                    });
+                    localStorage.setItem('sessions', JSON.stringify(sessions));
+                }
+                tasks[currentDay][editingTaskIndex] = task;
+            } else {
+                tasks[currentDay].push(task);
+            }
+            
+            localStorage.setItem('tasks', JSON.stringify(tasks));
+            closeTaskModal();
+            loadStats();
+            generateMonths();
+            if (document.getElementById('weekView').style.display === 'block') {
+                updateWeekView();
+            }
+            if (document.getElementById('statsView').style.display === 'block') {
+                loadDetailedStats();
+            }
+        }
+
+        function openPomodoroForTask(day, taskIndex) {
+            currentTask = { day, taskIndex };
+            const task = tasks[day][taskIndex];
+            document.getElementById('sessionDuration').value = task.duration;
+            document.getElementById('pomodoroModal').style.display = 'flex';
+        }
+
+        function closePomodoroModal() {
+            document.getElementById('pomodoroModal').style.display = 'none';
+        }
+
+        function startPomodoro() {
+            const duration = parseInt(document.getElementById('sessionDuration').value);
+            const bgUrl = document.getElementById('bgUrl').value;
+            
+            timeRemaining = duration * 60;
+            isPaused = false;
+            
+            const task = tasks[currentTask.day][currentTask.taskIndex];
+            document.getElementById('taskNameDisplay').textContent = task.name;
+            
+            const timerWindow = document.getElementById('timerWindow');
+            timerWindow.style.display = 'flex';
+            
+            if (bgUrl) {
+                timerWindow.style.backgroundImage = `url(${bgUrl})`;
+            } else {
+                timerWindow.style.background = 'linear-gradient(135deg, #667eea 0%, #764ba2 100%)';
+            }
+            
+            closePomodoroModal();
+            startTimer();
+        }
+
+        function startTimer() {
+            updateTimerDisplay();
+            timerInterval = setInterval(() => {
+                if (!isPaused && timeRemaining > 0) {
+                    timeRemaining--;
+                    updateTimerDisplay();
+                } else if (timeRemaining === 0) {
+                    completeSession();
+                }
+            }, 1000);
+        }
+
+        function updateTimerDisplay() {
+            const minutes = Math.floor(timeRemaining / 60);
+            const seconds = timeRemaining % 60;
+            document.getElementById('timerDisplay').textContent = 
+                `${minutes.toString().padStart(2, '0')}:${seconds.toString().padStart(2, '0')}`;
+        }
+
+        function pauseTimer() {
+            isPaused = true;
+        }
+
+        function resumeTimer() {
+            isPaused = false;
+        }
+
+        function stopTimer() {
+            clearInterval(timerInterval);
+            
+            if (currentTask) {
+                const studiedMinutes = Math.floor((parseInt(document.getElementById('sessionDuration').value) * 60 - timeRemaining) / 60);
+                
+                if (studiedMinutes > 0) {
+                    const task = tasks[currentTask.day][currentTask.taskIndex];
+                    sessions.push({
+                        date: currentTask.day,
+                        duration: studiedMinutes,
+                        task: task.name,
+                        completedAt: new Date().toISOString()
+                    });
+                    localStorage.setItem('sessions', JSON.stringify(sessions));
+                    
+                    // Optionally mark task as completed if they studied at least 80% of the time
+                    if (studiedMinutes >= parseInt(document.getElementById('sessionDuration').value) * 0.8) {
+                        tasks[currentTask.day][currentTask.taskIndex].completed = true;
+                        localStorage.setItem('tasks', JSON.stringify(tasks));
+                    }
+                }
+            }
+            
+            document.getElementById('timerWindow').style.display = 'none';
+            currentTask = null;
+            
+            // Update all views
+            loadStats();
+            generateMonths();
+            if (document.getElementById('weekView').style.display === 'block') {
+                updateWeekView();
+            }
+            if (document.getElementById('statsView').style.display === 'block') {
+                loadDetailedStats();
+            }
+        }
+
+        function completeSession() {
+            clearInterval(timerInterval);
+            
+            const duration = parseInt(document.getElementById('sessionDuration').value);
+            const task = tasks[currentTask.day][currentTask.taskIndex];
+            
+            sessions.push({
+                date: currentTask.day,
+                duration: duration,
+                task: task.name,
+                completedAt: new Date().toISOString()
+            });
+            localStorage.setItem('sessions', JSON.stringify(sessions));
+            
+            // Mark task as completed
+            tasks[currentTask.day][currentTask.taskIndex].completed = true;
+            localStorage.setItem('tasks', JSON.stringify(tasks));
+            
+            alert('🎉 Pomodoro session completed! Great work!');
+            document.getElementById('timerWindow').style.display = 'none';
+            currentTask = null;
+            
+            // Update all views
+            loadStats();
+            generateMonths();
+            if (document.getElementById('weekView').style.display === 'block') {
+                updateWeekView();
+            }
+            if (document.getElementById('statsView').style.display === 'block') {
+                loadDetailedStats();
+            }
+        }
+
+        function getDayHours(date) {
+            const dayKey = formatDateKey(date);
+            const daySessions = sessions.filter(s => s.date === dayKey);
+            return daySessions.reduce((total, s) => total + (s.duration / 60), 0);
+        }
+
+        function loadStats() {
+            const today = new Date();
+            const todayKey = formatDateKey(today);
+            
+            // Today's stats
+            const todayHours = getDayHours(today);
+            const todaySessions = sessions.filter(s => s.date === todayKey).length;
+            document.getElementById('todayStats').textContent = `${todayHours.toFixed(1)}h / ${todaySessions}`;
+            
+            // This week's stats (Monday to Sunday)
+            const weekStart = new Date(today);
+            weekStart.setDate(today.getDate() - today.getDay() + (today.getDay() === 0 ? -6 : 1));
+            weekStart.setHours(0, 0, 0, 0);
+            const weekEnd = new Date(weekStart);
+            weekEnd.setDate(weekStart.getDate() + 6);
+            weekEnd.setHours(23, 59, 59, 999);
+            
+            const weekSessions = sessions.filter(s => {
+                const sDate = new Date(s.date);
+                return sDate >= weekStart && sDate <= weekEnd;
+            });
+            const weekHours = weekSessions.reduce((total, s) => total + (s.duration / 60), 0);
+            document.getElementById('weekStats').textContent = `${weekHours.toFixed(1)}h / ${weekSessions.length}`;
+            
+            // This month's stats
+            const monthSessions = sessions.filter(s => {
+                const sDate = new Date(s.date);
+                return sDate.getMonth() === today.getMonth() && sDate.getFullYear() === today.getFullYear();
+            });
+            const monthHours = monthSessions.reduce((total, s) => total + (s.duration / 60), 0);
+            document.getElementById('monthStats').textContent = `${monthHours.toFixed(1)}h / ${monthSessions.length}`;
+            
+            // This year's stats
+            const yearSessions = sessions.filter(s => {
+                const sDate = new Date(s.date);
+                return sDate.getFullYear() === today.getFullYear();
+            });
+            const yearHours = yearSessions.reduce((total, s) => total + (s.duration / 60), 0);
+            document.getElementById('yearStats').textContent = `${yearHours.toFixed(1)}h / ${yearSessions.length}`;
+        }
+
+        function loadDetailedStats() {
+            const today = new Date();
+            
+            // Daily stats for last 7 days
+            const dailyStatsDiv = document.getElementById('dailyStats');
+            dailyStatsDiv.innerHTML = '';
+            
+            for (let i = 6; i >= 0; i--) {
+                const day = new Date(today);
+                day.setDate(today.getDate() - i);
+                const dayKey = formatDateKey(day);
+                const dayHours = getDayHours(day);
+                const daySessions = sessions.filter(s => s.date === dayKey).length;
+                const isToday = i === 0 ? ' (Today)' : '';
+                
+                dailyStatsDiv.innerHTML += `
+                    <div class="stat-row">
+                        <span>${day.toLocaleDateString('en-US', { weekday: 'short', month: 'short', day: 'numeric' })}${isToday}</span>
+                        <span>${dayHours.toFixed(1)}h / ${daySessions} sessions</span>
+                    </div>
+                `;
+            }
+            
+            // Monthly stats for last 6 months
+            const monthlyStatsDiv = document.getElementById('monthlyStats');
+            monthlyStatsDiv.innerHTML = '';
+            
+            for (let i = 5; i >= 0; i--) {
+                const month = new Date(today.getFullYear(), today.getMonth() - i, 1);
+                const monthSessions = sessions.filter(s => {
+                    const sDate = new Date(s.date);
+                    return sDate.getMonth() === month.getMonth() && sDate.getFullYear() === month.getFullYear();
+                });
+                const monthHours = monthSessions.reduce((total, s) => total + (s.duration / 60), 0);
+                const isCurrentMonth = i === 0 ? ' (Current)' : '';
+                
+                monthlyStatsDiv.innerHTML += `
+                    <div class="stat-row">
+                        <span>${month.toLocaleDateString('en-US', { month: 'long', year: 'numeric' })}${isCurrentMonth}</span>
+                        <span>${monthHours.toFixed(1)}h / ${monthSessions.length} sessions</span>
+                    </div>
+                `;
+            }
+            
+            // Yearly stats
+            const yearlyStatsDiv = document.getElementById('yearlyStats');
+            yearlyStatsDiv.innerHTML = '';
+            
+            const currentYear = today.getFullYear();
+            for (let year = currentYear; year >= currentYear - 2; year--) {
+                const yearSessions = sessions.filter(s => {
+                    const sDate = new Date(s.date);
+                    return sDate.getFullYear() === year;
+                });
+                const yearHours = yearSessions.reduce((total, s) => total + (s.duration / 60), 0);
+                const isCurrentYear = year === currentYear ? ' (Current)' : '';
+                
+                yearlyStatsDiv.innerHTML += `
+                    <div class="stat-row">
+                        <span>${year}${isCurrentYear}</span>
+                        <span>${yearHours.toFixed(1)}h / ${yearSessions.length} sessions</span>
+                    </div>
+                `;
+            }
+        }
+
+        // Initialize on load
+        window.onload = init;
+    </script>
+</body>
+</html>
