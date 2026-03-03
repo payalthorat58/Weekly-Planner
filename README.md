@@ -5,3 +5,5 @@ Merged some features of my top two productivity apps- Notion and Focus To-Do thr
 3. You can also add your own background image for pomodoro sessions by pasting it's URL.
 4. You can edit, delete your task later.
 5. You can get daily, weekly, monthly and yearly statistics as well.
+6. Light/Dark both modes available.
+
