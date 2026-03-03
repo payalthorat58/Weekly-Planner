@@ -30,6 +30,7 @@
         .header {
             text-align: center;
             margin-bottom: 30px;
+            position: relative; /* allow absolute-positioned toggle */
         }
 
         .header h1 {
@@ -128,6 +129,57 @@
         .year-btn:hover {
             background: #764ba2;
         }
+
+        /* theme toggle button styling */
+        .theme-toggle {
+            position: absolute;
+            top: 20px;
+            right: 20px;
+            padding: 8px 12px;
+            border: none;
+            background: #667eea;
+            color: white;
+            border-radius: 6px;
+            cursor: pointer;
+            transition: all 0.3s;
+            font-size: 0.9em;
+        }
+        .theme-toggle:hover {
+            background: #764ba2;
+        }
+
+        /* dark theme base adjustments */
+        body.dark {
+            background: #121212;
+            color: #eee;
+        }
+        body.dark .container { background: rgba(30, 30, 30, 0.95); }
+        body.dark .header h1,
+        body.dark .today-date,
+        body.dark .current-year { color: #fff; }
+        body.dark .stats-bar { background: linear-gradient(135deg, #444, #222); color: #fff; }
+        body.dark .view-btn { background: #555; color: #eee; }
+        body.dark .view-btn:hover { background: #666; }
+        body.dark .year-btn { background: #555; color: #eee; }
+        body.dark .year-btn:hover { background: #666; }
+        body.dark .month-card { background: #333; color: #eee; box-shadow: 0 5px 15px rgba(0,0,0,0.5); }
+        body.dark .month-card.today-month { background: linear-gradient(135deg, #444, #555); border-color: #667eea; }
+        /* higher contrast for month card headings/paragraphs */
+        body.dark .month-card h3 { color: #fff; }
+        body.dark .month-card p { color: #ccc; }
+        /* day and task cards dark */
+        body.dark .day-card { background: #2a2a2a; color: #eee; }
+        body.dark .day-card.today-card { background: linear-gradient(135deg, #444, #555); border-color: #667eea; }
+        body.dark .day-card h4 { color: #fff; }
+        body.dark .day-card .date { color: #ccc; border-bottom-color: #555; }
+        body.dark .day-stats { background: linear-gradient(135deg, #444, #222); color: #fff; }
+        body.dark .task-card { background: #3a3a3a; color: #eee; border-left-color: #667eea; }
+        body.dark .task-card:hover { background: #4a4a4a; }
+        body.dark .task-card.completed { border-left-color: #28a745; opacity: 0.8; }
+        body.dark .task-card h5 { color: #fff; }
+        body.dark .task-card p { color: #ccc; }
+        body.dark .task-btn { background: #555; color: #eee; }
+        body.dark .task-btn:hover { background: #666; }
 
         .current-year {
             font-size: 1.5em;
@@ -691,6 +743,7 @@
         <div class="header">
             <h1>📅 Weekly Planner & Productivity Hub</h1>
             <div class="today-date" id="todayDateDisplay"></div>
+            <button id="themeToggle" class="theme-toggle">🌙 Dark Mode</button>
         </div>
 
         <div class="stats-bar">
@@ -847,6 +900,28 @@
         let timeRemaining = 0;
         let isPaused = false;
 
+        // theme toggle logic
+        function applyTheme(theme) {
+            if (theme === 'dark') {
+                document.body.classList.add('dark');
+                document.getElementById('themeToggle').textContent = '☀️ Light Mode';
+            } else {
+                document.body.classList.remove('dark');
+                document.getElementById('themeToggle').textContent = '🌙 Dark Mode';
+            }
+            localStorage.setItem('theme', theme);
+        }
+
+        function initTheme() {
+            const btn = document.getElementById('themeToggle');
+            const saved = localStorage.getItem('theme');
+            if (saved) applyTheme(saved);
+            btn.addEventListener('click', () => {
+                const newTheme = document.body.classList.contains('dark') ? 'light' : 'dark';
+                applyTheme(newTheme);
+            });
+        }
+
         // Make sure the year display starts with the detected current year
         // (the span in HTML is initially empty)
         function updateYearDisplay() {
@@ -855,6 +930,7 @@
 
         // Initialize
         function init() {
+            initTheme();
             updateTodayDate();
             setCurrentWeek();
             updateYearDisplay();
