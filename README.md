@@ -7,4 +7,8 @@ Merged some features of my top two productivity apps- Notion and Focus To-Do thr
 5. You can edit, delete your task later.
 6. You can get daily, weekly, monthly and yearly statistics as well.
 7. Light/Dark both modes available.
+8. You can select the week start day - Monday/Sunday.
+9. You can select a particular task as permanent/repetitive, the weekly repeated tasks doesn't need to be added differently.
+10. Added reminders, you can select on which day and what time you need to be reminded about certain task.
+11. Clicking on cross mark will mark the task incomplete for that day.
 
