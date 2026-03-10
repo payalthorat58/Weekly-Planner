@@ -130,11 +130,34 @@
             background: #764ba2;
         }
 
-        /* theme toggle button styling */
-        .theme-toggle {
+        /* header control container (theme + week start toggle) */
+        .header-controls {
             position: absolute;
             top: 20px;
             right: 20px;
+            display: flex;
+            gap: 10px;
+            align-items: center;
+        }
+
+        .week-start-select {
+            padding: 8px 12px;
+            border: 2px solid #667eea;
+            border-radius: 6px;
+            background: white;
+            color: #333;
+            font-size: 0.9em;
+            cursor: pointer;
+            transition: all 0.3s;
+        }
+
+        .week-start-select:focus {
+            outline: none;
+            box-shadow: 0 0 0 3px rgba(102, 126, 234, 0.3);
+        }
+
+        /* theme toggle button styling */
+        .theme-toggle {
             padding: 8px 12px;
             border: none;
             background: #667eea;
@@ -162,6 +185,7 @@
         body.dark .view-btn:hover { background: #666; }
         body.dark .year-btn { background: #555; color: #eee; }
         body.dark .year-btn:hover { background: #666; }
+        body.dark .week-start-select { background: #333; color: #eee; border-color: #555; }
         body.dark .month-card { background: #333; color: #eee; box-shadow: 0 5px 15px rgba(0,0,0,0.5); }
         body.dark .month-card.today-month { background: linear-gradient(135deg, #444, #555); border-color: #667eea; }
         /* higher contrast for month card headings/paragraphs */
@@ -180,6 +204,14 @@
         body.dark .task-card p { color: #ccc; }
         body.dark .task-btn { background: #555; color: #eee; }
         body.dark .task-btn:hover { background: #666; }
+
+        /* compact task summary in dark mode */
+        body.dark .task-summary li {
+            background: rgba(255, 255, 255, 0.08);
+        }
+        body.dark .task-summary-name { color: #fff; }
+        body.dark .task-summary-duration { color: #ccc; }
+        body.dark .expand-hint { color: #ccc; }
 
         .current-year {
             font-size: 1.5em;
@@ -337,6 +369,51 @@
             flex: 1;
         }
 
+        .task-summary {
+            margin-top: 10px;
+            font-size: 0.95em;
+            line-height: 1.4;
+            color: #333;
+            padding-left: 0;
+            list-style: none;
+        }
+
+        .task-summary li {
+            display: flex;
+            justify-content: space-between;
+            align-items: baseline;
+            padding: 6px 10px;
+            border-radius: 8px;
+            transition: background 0.2s;
+        }
+
+        .task-summary li:nth-child(odd) {
+            background: rgba(102, 126, 234, 0.06);
+        }
+
+        .task-summary-name {
+            font-weight: 600;
+        }
+
+        .task-summary-duration {
+            color: #666;
+            font-size: 0.9em;
+        }
+
+        .expand-hint {
+            font-size: 0.85em;
+            color: #666;
+            margin: 6px 0 10px;
+        }
+
+        .task-details.hide {
+            display: none;
+        }
+
+        .day-card.clickable {
+            cursor: pointer;
+        }
+
         .task-card {
             background: #f8f9fa;
             padding: 15px;
@@ -355,6 +432,17 @@
         .task-card.completed {
             border-left-color: #28a745;
             opacity: 0.8;
+        }
+
+        .task-card.not-finished h5,
+        .task-card.not-finished p {
+            text-decoration: line-through;
+            opacity: 0.7;
+        }
+
+        .task-summary-name.not-finished {
+            text-decoration: line-through;
+            opacity: 0.7;
         }
 
         .task-card h5 {
@@ -741,9 +829,15 @@
 <body>
     <div class="container">
         <div class="header">
-            <h1>📅 Weekly Planner & Productivity Hub</h1>
+            <h1>📅 Weekly Planner</h1>
             <div class="today-date" id="todayDateDisplay"></div>
-            <button id="themeToggle" class="theme-toggle">🌙 Dark Mode</button>
+            <div class="header-controls">
+                <select id="weekStartSelect" class="week-start-select" title="Set the first day of the week">
+                    <option value="monday">Week Starts Monday</option>
+                    <option value="sunday">Week Starts Sunday</option>
+                </select>
+                <button id="themeToggle" class="theme-toggle">🌙 Dark Mode</button>
+            </div>
         </div>
 
         <div class="stats-bar">
@@ -838,6 +932,17 @@
                     <option value="completed">Completed</option>
                 </select>
             </div>
+            <div class="form-group">
+                <label>Reminder (optional)</label>
+                <input type="datetime-local" id="taskReminder" />
+                <small style="opacity:0.7;">Set a date & time to receive a reminder notification (pending tasks only).</small>
+            </div>
+            <div class="form-group">
+                <label>
+                    <input type="checkbox" id="taskPermanent" />
+                    Repeat weekly (permanent)
+                </label>
+            </div>
             <button class="submit-btn" onclick="saveTask()">Save Task</button>
         </div>
     </div>
@@ -860,6 +965,26 @@
         </div>
     </div>
 
+    <div id="reminderModal" class="modal">
+        <div class="modal-content">
+            <div class="modal-header">
+                <h3>Set Reminder</h3>
+                <button class="close-btn" onclick="closeReminderModal()">&times;</button>
+            </div>
+            <div class="form-group">
+                <label>Reminder Date & Time</label>
+                <input type="datetime-local" id="reminderDateTime" />
+            </div>
+            <div class="form-group">
+                <label>
+                    <input type="checkbox" id="clearReminder" />
+                    Clear existing reminder
+                </label>
+            </div>
+            <button class="submit-btn" onclick="saveReminder()">Save Reminder</button>
+        </div>
+    </div>
+
     <div id="timerWindow" class="timer-window">
         <div class="timer-container">
             <h2 class="task-name-display" id="taskNameDisplay"></h2>
@@ -879,26 +1004,33 @@
         // Data storage - initialize with empty data if first visit
         let tasks = {};
         let sessions = [];
+        let permanentTasks = [];
         
         if (hasVisitedBefore) {
             // Load existing data for returning users
             tasks = JSON.parse(localStorage.getItem('tasks')) || {};
             sessions = JSON.parse(localStorage.getItem('sessions')) || [];
+            permanentTasks = JSON.parse(localStorage.getItem('permanentTasks')) || [];
         } else {
             // First time visitor - set empty data and mark as visited
             localStorage.setItem('tasks', JSON.stringify(tasks));
             localStorage.setItem('sessions', JSON.stringify(sessions));
+            localStorage.setItem('permanentTasks', JSON.stringify(permanentTasks));
             localStorage.setItem('hasVisitedBefore', 'true');
         }
         
         let currentWeekStart = new Date();
         let currentYear = new Date().getFullYear();
+        let weekStart = 'monday'; // default, can be changed by user
         let currentTask = null;
         let currentDay = null;
         let editingTaskIndex = null;
         let timerInterval = null;
         let timeRemaining = 0;
         let isPaused = false;
+        let timerStartedAt = 0;
+        let timerBaseRemaining = 0;
+        let reminderTimeouts = {};
 
         // theme toggle logic
         function applyTheme(theme) {
@@ -922,6 +1054,41 @@
             });
         }
 
+        function initWeekStart() {
+            const select = document.getElementById('weekStartSelect');
+            const saved = localStorage.getItem('weekStart');
+            if (saved === 'sunday' || saved === 'monday') {
+                weekStart = saved;
+            }
+            select.value = weekStart;
+            select.addEventListener('change', () => {
+                weekStart = select.value;
+                localStorage.setItem('weekStart', weekStart);
+                setCurrentWeek();
+                updateWeekView();
+            });
+        }
+
+        function normalizeTasks() {
+            let updated = false;
+            Object.keys(tasks).forEach(dayKey => {
+                tasks[dayKey] = tasks[dayKey].map(task => {
+                    if (!task.id) {
+                        task.id = `task_${Date.now()}_${Math.random().toString(36).slice(2)}`;
+                        updated = true;
+                    }
+                    if (task.reminder === undefined) {
+                        task.reminder = null;
+                        updated = true;
+                    }
+                    return task;
+                });
+            });
+            if (updated) {
+                localStorage.setItem('tasks', JSON.stringify(tasks));
+            }
+        }
+
         // Make sure the year display starts with the detected current year
         // (the span in HTML is initially empty)
         function updateYearDisplay() {
@@ -931,6 +1098,8 @@
         // Initialize
         function init() {
             initTheme();
+            initWeekStart();
+            normalizeTasks();
             updateTodayDate();
             setCurrentWeek();
             updateYearDisplay();
@@ -948,13 +1117,55 @@
             document.getElementById('todayDateDisplay').textContent = today.toLocaleDateString('en-US', options);
         }
 
+        function getWeekStartFromDate(date) {
+            const d = new Date(date);
+            d.setHours(0, 0, 0, 0);
+            const dayOfWeek = d.getDay();
+            const offset = weekStart === 'sunday' ? 0 : 1;
+
+            // `diff` is how many days we go back from `d` to reach the week start
+            const diff = (dayOfWeek - offset + 7) % 7;
+            d.setDate(d.getDate() - diff);
+            return d;
+        }
+
         function setCurrentWeek() {
-            const today = new Date();
-            const dayOfWeek = today.getDay();
-            // Adjust to start week on Monday
-            const diff = today.getDate() - dayOfWeek + (dayOfWeek === 0 ? -6 : 1);
-            currentWeekStart = new Date(today.setDate(diff));
-            currentWeekStart.setHours(0, 0, 0, 0);
+            currentWeekStart = getWeekStartFromDate(new Date());
+        }
+
+        function getWeekdayFromDateKey(dayKey) {
+            const d = new Date(dayKey);
+            return d.getDay();
+        }
+
+        function attachPermanentTasksToDay(dayKey, dateObj) {
+            const weekday = getWeekdayFromDateKey(dayKey);
+            const templates = permanentTasks.filter(t => t.weekday === weekday);
+            if (!templates.length) return;
+
+            if (!tasks[dayKey]) {
+                tasks[dayKey] = [];
+            }
+
+            let added = false;
+            templates.forEach(template => {
+                const exists = tasks[dayKey].some(t => t.permanentId === template.id);
+                if (!exists) {
+                    tasks[dayKey].push({
+                        name: template.name,
+                        description: template.description,
+                        duration: template.duration,
+                        completed: false,
+                        createdAt: new Date().toISOString(),
+                        permanentId: template.id
+                    });
+                    added = true;
+                }
+            });
+
+            if (added) {
+                localStorage.setItem('tasks', JSON.stringify(tasks));
+            }
         }
 
         function goToCurrentWeek() {
@@ -1013,11 +1224,7 @@
         function showMonth(month, year) {
             // Always open the week that contains today's date (ongoing day)
             const today = new Date();
-            const dayOfWeek = today.getDay();
-            // Adjust to start week on Monday
-            const diff = today.getDate() - dayOfWeek + (dayOfWeek === 0 ? -6 : 1);
-            currentWeekStart = new Date(today.setDate(diff));
-            currentWeekStart.setHours(0, 0, 0, 0);
+            currentWeekStart = getWeekStartFromDate(today);
             
             showView('weeks');
             updateWeekView();
@@ -1052,7 +1259,9 @@
             
             const monthNames = ['January', 'February', 'March', 'April', 'May', 'June',
                               'July', 'August', 'September', 'October', 'November', 'December'];
-            const dayNames = ['Monday', 'Tuesday', 'Wednesday', 'Thursday', 'Friday', 'Saturday', 'Sunday'];
+            const dayNames = weekStart === 'sunday'
+                ? ['Sunday', 'Monday', 'Tuesday', 'Wednesday', 'Thursday', 'Friday', 'Saturday']
+                : ['Monday', 'Tuesday', 'Wednesday', 'Thursday', 'Friday', 'Saturday', 'Sunday'];
             
             const weekEnd = new Date(currentWeekStart);
             weekEnd.setDate(weekEnd.getDate() + 6);
@@ -1069,63 +1278,122 @@
                 day.setDate(currentWeekStart.getDate() + i);
                 
                 const dayKey = formatDateKey(day);
+                attachPermanentTasksToDay(dayKey, day);
                 const dayTasks = tasks[dayKey] || [];
                 
                 const dayHours = getDayHours(day);
                 const daySessions = sessions.filter(s => s.date === dayKey).length;
                 
                 const dayCard = document.createElement('div');
-                dayCard.className = 'day-card';
+                dayCard.className = 'day-card clickable';
+                dayCard.id = `day-${dayKey}`;
                 if (dayKey === todayKey) {
                     dayCard.classList.add('today-card');
                 }
-                
-                let tasksHtml = '';
+
+                // Build a compact summary for quick view
+                let summaryHtml = '';
+                let detailsHtml = '';
+
                 if (dayTasks.length === 0) {
-                    tasksHtml = '<div class="empty-state">✨ No tasks for this day</div>';
+                    const emptyHtml = '<div class="empty-state">✨ No tasks for this day</div>';
+                    summaryHtml = emptyHtml;
+                    detailsHtml = emptyHtml;
                 } else {
+                    summaryHtml = '<ul class="task-summary">';
                     dayTasks.forEach((task, index) => {
                         const statusClass = task.completed ? 'status-completed' : 'status-pending';
                         const statusText = task.completed ? 'Completed' : 'Pending';
-                        const taskClass = task.completed ? 'completed' : '';
-                        
+                        const taskClass = task.completed ? 'completed' : task.notFinished ? 'not-finished' : '';
+
                         // Count sessions for this specific task
-                        const taskSessions = sessions.filter(s => 
+                        const taskSessions = sessions.filter(s =>
                             s.date === dayKey && s.task === task.name
                         );
                         const taskHours = taskSessions.reduce((total, s) => total + (s.duration / 60), 0);
-                        
-                        tasksHtml += `
-                            <div class="task-card ${taskClass}">
-                                <h5>${task.name} <span class="task-status ${statusClass}">${statusText}</span></h5>
+
+                        summaryHtml += `
+                            <li>
+                                <span class="task-summary-status ${statusClass}">${task.completed ? '✅' : '⏳'}</span>
+                                <span class="task-summary-name ${task.notFinished ? 'not-finished' : ''}">${task.permanentId ? '🔁 ' : ''}${task.name}</span>
+                                <span class="task-summary-duration">${task.duration}m</span>
+                                ${task.reminder ? `<span class="task-summary-reminder">🔔 ${formatReminderDateTime(task.reminder)}</span>` : ''}
+                            </li>
+                        `;
+
+                        detailsHtml += `
+                            <div class="task-card ${taskClass}" onclick="event.stopPropagation()">
+                                <h5>${task.permanentId ? '🔁 ' : ''}${task.name} <span class="task-status ${statusClass}">${statusText}</span></h5>
                                 <p>${task.description || 'No description'}</p>
                                 <p><small>⏱️ Duration: ${task.duration} min</small></p>
                                 <p><small>📊 Tracked: ${taskHours.toFixed(1)}h (${taskSessions.length} sessions)</small></p>
+                                <p><small>⏰ Reminder: ${task.reminder ? formatReminderDateTime(task.reminder) : 'Not set'}</small></p>
                                 <div class="task-actions">
-                                    <button class="task-btn pomodoro" onclick="openPomodoroForTask('${dayKey}', ${index})">🍅 Focus</button>
-                                    <button class="task-btn complete" onclick="toggleTaskComplete('${dayKey}', ${index})">✓ Toggle</button>
-                                    <button class="task-btn edit" onclick="editTask('${dayKey}', ${index})">✏️ Edit</button>
-                                    <button class="task-btn delete" onclick="deleteTask('${dayKey}', ${index})">🗑️ Delete</button>
+                                    <button class="task-btn" onclick="event.stopPropagation(); moveTask('${dayKey}', ${index}, -1)">▲</button>
+                                    <button class="task-btn" onclick="event.stopPropagation(); moveTask('${dayKey}', ${index}, 1)">▼</button>
+                                    <button class="task-btn" onclick="event.stopPropagation(); toggleTaskNotFinished('${dayKey}', ${index})">❌</button>
+                                    <button class="task-btn pomodoro" onclick="event.stopPropagation(); openPomodoroForTask('${dayKey}', ${index})">🍅 Focus</button>
+                                    <button class="task-btn complete" onclick="event.stopPropagation(); toggleTaskComplete('${dayKey}', ${index})">✓ Toggle</button>
+                                    <button class="task-btn" onclick="event.stopPropagation(); openReminderModal('${dayKey}', ${index})">🔔 Reminder</button>
+                                    <button class="task-btn edit" onclick="event.stopPropagation(); editTask('${dayKey}', ${index})">✏️ Edit</button>
+                                    <button class="task-btn delete" onclick="event.stopPropagation(); deleteTask('${dayKey}', ${index})">🗑️ Delete</button>
                                 </div>
                             </div>
                         `;
                     });
+                    summaryHtml += '</ul>';
                 }
-                
+
                 dayCard.innerHTML = `
                     <h4>${dayNames[i]}</h4>
                     <div class="date">${monthNames[day.getMonth()]} ${day.getDate()}, ${day.getFullYear()}</div>
                     <div class="day-stats">📚 ${dayHours.toFixed(1)} hours (${daySessions} sessions)</div>
-                    <div class="task-list">
-                        ${tasksHtml}
+                    <div class="expand-hint">Click to view full tasks</div>
+                    <div class="task-summary">
+                        ${summaryHtml}
                     </div>
-                    <button class="add-task-btn" onclick="openTaskModal('${dayKey}')">+ Add New Task</button>
+                    <div class="task-details hide">
+                        ${detailsHtml}
+                        <button class="add-task-btn" onclick="event.stopPropagation(); openTaskModal('${dayKey}')">+ Add New Task</button>
+                    </div>
                 `;
-                
+
+                dayCard.addEventListener('click', () => toggleDayDetails(dayKey));
                 daysGrid.appendChild(dayCard);
             }
             
             loadStats();
+            scheduleAllReminders();
+        }
+
+        function toggleDayDetails(dayKey) {
+            const card = document.getElementById(`day-${dayKey}`);
+            if (!card) return;
+
+            const details = card.querySelector('.task-details');
+            const summary = card.querySelector('.task-summary');
+            if (!details || !summary) return;
+
+            const isOpen = !details.classList.contains('hide');
+            if (isOpen) {
+                details.classList.add('hide');
+                summary.classList.remove('hide');
+            } else {
+                details.classList.remove('hide');
+                summary.classList.add('hide');
+            }
+        }
+
+        function moveTask(dayKey, fromIndex, direction) {
+            const dayTasks = tasks[dayKey];
+            if (!dayTasks) return;
+
+            const toIndex = fromIndex + direction;
+            if (toIndex < 0 || toIndex >= dayTasks.length) return;
+
+            [dayTasks[fromIndex], dayTasks[toIndex]] = [dayTasks[toIndex], dayTasks[fromIndex]];
+            localStorage.setItem('tasks', JSON.stringify(tasks));
+            updateWeekView();
         }
 
         function getWeekNumber(date) {
@@ -1146,6 +1414,7 @@
             document.getElementById('taskDesc').value = '';
             document.getElementById('pomodoroDuration').value = '25';
             document.getElementById('taskStatus').value = 'pending';
+            document.getElementById('taskPermanent').checked = false;
             document.getElementById('taskModal').style.display = 'flex';
         }
 
@@ -1159,34 +1428,63 @@
             document.getElementById('taskDesc').value = task.description || '';
             document.getElementById('pomodoroDuration').value = task.duration;
             document.getElementById('taskStatus').value = task.completed ? 'completed' : 'pending';
+            document.getElementById('taskPermanent').checked = !!task.permanentId;
             document.getElementById('taskModal').style.display = 'flex';
         }
 
         function deleteTask(day, taskIndex) {
-            const taskName = tasks[day][taskIndex].name;
-            
+            const task = tasks[day][taskIndex];
+            const taskName = task.name;
+
             // Count sessions for this task
             const taskSessions = sessions.filter(s => s.date === day && s.task === taskName);
             const sessionCount = taskSessions.length;
             const totalHours = taskSessions.reduce((total, s) => total + (s.duration / 60), 0);
-            
+
             let warningMessage = `Are you sure you want to delete "${taskName}"?`;
+            if (task.permanentId) {
+                warningMessage += `\n\n⚠️ This task is marked as repeating weekly. Deleting it will remove it from all future weeks.`;
+            }
             if (sessionCount > 0) {
                 warningMessage += `\n\n⚠️ This task has ${sessionCount} tracked session(s) (${totalHours.toFixed(1)} hours).\nThese will also be deleted and your statistics will be updated.`;
             }
-            
+
             if (confirm(warningMessage)) {
-                // Remove all sessions associated with this task
-                sessions = sessions.filter(s => !(s.date === day && s.task === taskName));
-                localStorage.setItem('sessions', JSON.stringify(sessions));
-                
-                // Remove the task
-                tasks[day].splice(taskIndex, 1);
-                if (tasks[day].length === 0) {
-                    delete tasks[day];
+                if (task.permanentId) {
+                    // Remove the permanent template and all its occurrences
+                    const permId = task.permanentId;
+                    permanentTasks = permanentTasks.filter(t => t.id !== permId);
+                    localStorage.setItem('permanentTasks', JSON.stringify(permanentTasks));
+
+                    // Remove all task instances created from this template
+                    Object.keys(tasks).forEach(dayKey => {
+                        const removedTasks = tasks[dayKey].filter(t => t.permanentId === permId);
+                        if (removedTasks.length) {
+                            // Remove any sessions tied to these instances
+                            removedTasks.forEach(rt => {
+                                sessions = sessions.filter(s => !(s.date === dayKey && s.task === rt.name));
+                            });
+                        }
+                        tasks[dayKey] = tasks[dayKey].filter(t => t.permanentId !== permId);
+                        if (tasks[dayKey].length === 0) {
+                            delete tasks[dayKey];
+                        }
+                    });
+                    localStorage.setItem('sessions', JSON.stringify(sessions));
+                } else {
+                    // Remove all sessions associated with this task
+                    sessions = sessions.filter(s => !(s.date === day && s.task === taskName));
+                    localStorage.setItem('sessions', JSON.stringify(sessions));
+
+                    // Remove the task
+                    tasks[day].splice(taskIndex, 1);
+                    if (tasks[day].length === 0) {
+                        delete tasks[day];
+                    }
                 }
+
                 localStorage.setItem('tasks', JSON.stringify(tasks));
-                
+
                 // Update all views
                 loadStats();
                 generateMonths();
@@ -1196,13 +1494,46 @@
                 if (document.getElementById('statsView').style.display === 'block') {
                     loadDetailedStats();
                 }
-                
+
                 alert('✅ Task and associated sessions deleted successfully!');
             }
         }
 
         function toggleTaskComplete(day, taskIndex) {
-            tasks[day][taskIndex].completed = !tasks[day][taskIndex].completed;
+            const task = tasks[day][taskIndex];
+            task.completed = !task.completed;
+
+            if (task.completed) {
+                task.notFinished = false;
+                // Record a session for the task's assigned duration
+                const alreadyLogged = sessions.some(s => s.date === day && s.task === task.name && s.fromCompletion);
+                if (!alreadyLogged && task.duration > 0) {
+                    sessions.push({
+                        date: day,
+                        duration: task.duration,
+                        task: task.name,
+                        completedAt: new Date().toISOString(),
+                        fromCompletion: true
+                    });
+                    localStorage.setItem('sessions', JSON.stringify(sessions));
+                }
+            } else {
+                // Remove the completion-recorded session when unticking
+                sessions = sessions.filter(s => !(s.date === day && s.task === task.name && s.fromCompletion));
+                localStorage.setItem('sessions', JSON.stringify(sessions));
+            }
+
+            localStorage.setItem('tasks', JSON.stringify(tasks));
+            loadStats();
+            generateMonths();
+            updateWeekView();
+        }
+
+        function toggleTaskNotFinished(day, taskIndex) {
+            tasks[day][taskIndex].notFinished = !tasks[day][taskIndex].notFinished;
+            if (tasks[day][taskIndex].notFinished) {
+                tasks[day][taskIndex].completed = false;
+            }
             localStorage.setItem('tasks', JSON.stringify(tasks));
             updateWeekView();
         }
@@ -1216,6 +1547,7 @@
             const description = document.getElementById('taskDesc').value.trim();
             const duration = parseInt(document.getElementById('pomodoroDuration').value);
             const status = document.getElementById('taskStatus').value === 'completed';
+            const isPermanent = document.getElementById('taskPermanent').checked;
             
             if (!name) {
                 alert('Please enter a task name');
@@ -1238,7 +1570,6 @@
                 // When editing, we need to handle sessions if task name changed
                 const oldTask = tasks[currentDay][editingTaskIndex];
                 if (oldTask.name !== name) {
-                    // Update session task names to match new task name
                     sessions = sessions.map(s => {
                         if (s.date === currentDay && s.task === oldTask.name) {
                             s.task = name;
@@ -1247,8 +1578,59 @@
                     });
                     localStorage.setItem('sessions', JSON.stringify(sessions));
                 }
+
+                // If toggling permanent
+                if (isPermanent && !oldTask.permanentId) {
+                    const weekday = new Date(currentDay).getDay();
+                    const id = `perm_${Date.now()}_${Math.random().toString(36).slice(2)}`;
+                    permanentTasks.push({ id, weekday, name, description, duration });
+                    localStorage.setItem('permanentTasks', JSON.stringify(permanentTasks));
+                    task.permanentId = id;
+                } else if (!isPermanent && oldTask.permanentId) {
+                    // Remove the permanent template and all its instances
+                    const permId = oldTask.permanentId;
+                    permanentTasks = permanentTasks.filter(t => t.id !== permId);
+                    localStorage.setItem('permanentTasks', JSON.stringify(permanentTasks));
+
+                    Object.keys(tasks).forEach(dayKey => {
+                        tasks[dayKey] = tasks[dayKey].filter(t => t.permanentId !== permId);
+                        if (tasks[dayKey].length === 0) {
+                            delete tasks[dayKey];
+                        }
+                    });
+                } else if (isPermanent && oldTask.permanentId) {
+                    // Update the permanent template when editing a permanent instance
+                    const permId = oldTask.permanentId;
+                    const template = permanentTasks.find(t => t.id === permId);
+                    if (template) {
+                        template.name = name;
+                        template.description = description;
+                        template.duration = duration;
+                        localStorage.setItem('permanentTasks', JSON.stringify(permanentTasks));
+
+                        // Update existing instances for this template
+                        Object.keys(tasks).forEach(dayKey => {
+                            tasks[dayKey].forEach(t => {
+                                if (t.permanentId === permId) {
+                                    t.name = name;
+                                    t.description = description;
+                                    t.duration = duration;
+                                }
+                            });
+                        });
+                    }
+                    task.permanentId = permId;
+                }
+
                 tasks[currentDay][editingTaskIndex] = task;
             } else {
+                if (isPermanent) {
+                    const weekday = new Date(currentDay).getDay();
+                    const id = `perm_${Date.now()}_${Math.random().toString(36).slice(2)}`;
+                    permanentTasks.push({ id, weekday, name, description, duration });
+                    localStorage.setItem('permanentTasks', JSON.stringify(permanentTasks));
+                    task.permanentId = id;
+                }
                 tasks[currentDay].push(task);
             }
             
@@ -1299,15 +1681,22 @@
         }
 
         function startTimer() {
+            clearInterval(timerInterval);
+            timerInterval = null;
+            timerStartedAt = Date.now();
+            timerBaseRemaining = timeRemaining;
             updateTimerDisplay();
             timerInterval = setInterval(() => {
-                if (!isPaused && timeRemaining > 0) {
-                    timeRemaining--;
-                    updateTimerDisplay();
-                } else if (timeRemaining === 0) {
+                if (isPaused) return;
+                const elapsed = Math.floor((Date.now() - timerStartedAt) / 1000);
+                timeRemaining = Math.max(0, timerBaseRemaining - elapsed);
+                updateTimerDisplay();
+                if (timeRemaining <= 0) {
+                    clearInterval(timerInterval);
+                    timerInterval = null;
                     completeSession();
                 }
-            }, 1000);
+            }, 250);
         }
 
         function updateTimerDisplay() {
@@ -1318,15 +1707,22 @@
         }
 
         function pauseTimer() {
+            if (isPaused) return;
+            const elapsed = Math.floor((Date.now() - timerStartedAt) / 1000);
+            timeRemaining = Math.max(0, timerBaseRemaining - elapsed);
             isPaused = true;
         }
 
         function resumeTimer() {
+            if (!isPaused) return;
+            timerStartedAt = Date.now();
+            timerBaseRemaining = timeRemaining;
             isPaused = false;
         }
 
         function stopTimer() {
             clearInterval(timerInterval);
+            timerInterval = null;
             
             if (currentTask) {
                 const studiedMinutes = Math.floor((parseInt(document.getElementById('sessionDuration').value) * 60 - timeRemaining) / 60);
@@ -1365,6 +1761,7 @@
 
         function completeSession() {
             clearInterval(timerInterval);
+            timerInterval = null;
             
             const duration = parseInt(document.getElementById('sessionDuration').value);
             const task = tasks[currentTask.day][currentTask.taskIndex];
@@ -1507,6 +1904,113 @@
                     </div>
                 `;
             }
+        }
+
+        function formatReminderDateTime(isoString) {
+            if (!isoString) return '';
+            const date = new Date(isoString);
+            if (isNaN(date)) return '';
+            return date.toLocaleString('en-US', { dateStyle: 'short', timeStyle: 'short' });
+        }
+
+        function scheduleAllReminders() {
+            Object.values(reminderTimeouts).forEach(timeoutId => clearTimeout(timeoutId));
+            reminderTimeouts = {};
+
+            const now = new Date();
+            Object.keys(tasks).forEach(dayKey => {
+                tasks[dayKey].forEach(task => {
+                    if (!task || task.completed || !task.reminder) return;
+                    const remindAt = new Date(task.reminder);
+                    if (isNaN(remindAt)) return;
+
+                    const key = `${dayKey}:${task.id}`;
+                    const delay = remindAt.getTime() - now.getTime();
+
+                    if (delay <= 0) {
+                        triggerReminder(dayKey, task.id);
+                    } else {
+                        reminderTimeouts[key] = setTimeout(() => triggerReminder(dayKey, task.id), delay);
+                    }
+                });
+            });
+        }
+
+        function triggerReminder(dayKey, taskId) {
+            const dayTasks = tasks[dayKey];
+            if (!dayTasks) return;
+            const taskIndex = dayTasks.findIndex(t => t.id === taskId);
+            if (taskIndex === -1) return;
+
+            const task = dayTasks[taskIndex];
+            const title = `Reminder: ${task.name}`;
+            const body = task.description ? task.description : 'It’s time to work on this task.';
+
+            function showNotification() {
+                if (window.Notification && Notification.permission === 'granted') {
+                    new Notification(title, { body });
+                } else {
+                    alert(`${title}\n\n${body}`);
+                }
+            }
+
+            if (window.Notification && Notification.permission !== 'granted' && window.Notification.permission !== 'denied') {
+                Notification.requestPermission().then(permission => {
+                    if (permission === 'granted') {
+                        new Notification(title, { body });
+                    } else {
+                        alert(`${title}\n\n${body}`);
+                    }
+                });
+            } else {
+                showNotification();
+            }
+
+            // Clear the reminder after firing
+            task.reminder = null;
+            localStorage.setItem('tasks', JSON.stringify(tasks));
+            updateWeekView();
+        }
+
+        function openReminderModal(day, taskIndex) {
+            currentDay = day;
+            editingTaskIndex = taskIndex;
+            const task = tasks[day][taskIndex];
+            const reminderInput = document.getElementById('reminderDateTime');
+            const clearCheckbox = document.getElementById('clearReminder');
+
+            clearCheckbox.checked = false;
+            reminderInput.value = task.reminder ? toLocalDateTimeInputValue(task.reminder) : '';
+            document.getElementById('reminderModal').style.display = 'flex';
+        }
+
+        function closeReminderModal() {
+            document.getElementById('reminderModal').style.display = 'none';
+        }
+
+        function toLocalDateTimeInputValue(isoString) {
+            const date = new Date(isoString);
+            if (isNaN(date)) return '';
+            const tzOffset = date.getTimezoneOffset() * 60000;
+            const local = new Date(date.getTime() - tzOffset);
+            return local.toISOString().slice(0, 16);
+        }
+
+        function saveReminder() {
+            const reminderInput = document.getElementById('reminderDateTime').value;
+            const clear = document.getElementById('clearReminder').checked;
+            const task = tasks[currentDay][editingTaskIndex];
+
+            if (clear) {
+                task.reminder = null;
+            } else {
+                task.reminder = reminderInput ? new Date(reminderInput).toISOString() : null;
+            }
+
+            localStorage.setItem('tasks', JSON.stringify(tasks));
+            closeReminderModal();
+            updateWeekView();
+            scheduleAllReminders();
         }
 
         // Initialize on load
